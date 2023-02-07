@@ -41,8 +41,6 @@ struct CreateUrlResponse {
 async fn create_url(Json(input): Json<CreateUrl>) -> impl IntoResponse {
     let url = data::create_url(input.url);
 
-    dbg!(&url);
-
     match url {
         Ok(url) => Ok(Json(CreateUrlResponse {
             url: format!("{HOST}/{}", url.id),
