@@ -2,6 +2,8 @@ use chrono::prelude::*;
 use redis::{self, from_redis_value};
 use redis::{Commands, FromRedisValue};
 use serde::{Deserialize, Serialize};
+
+use crate::config;
 // use serde_json;
 
 const REDIS_NAMESPACE: &str = "urls";
@@ -28,15 +30,15 @@ fn namespace_key(key: String) -> String {
 }
 
 pub fn read_url(id: i64) -> redis::RedisResult<Url> {
-    let client = redis::Client::open("redis://127.0.0.1:6379/")?;
-    let mut con = client.get_connection()?;
+    let config = config::Config::read().unwrap();
+    let mut con = config.redis_connection()?;
 
     con.get(namespace_key(id.to_string()))
 }
 
 pub fn create_url(url: String) -> redis::RedisResult<Url> {
-    let client = redis::Client::open("redis://127.0.0.1:6379/")?;
-    let mut con = client.get_connection()?;
+    let config = config::Config::read().unwrap();
+    let mut con = config.redis_connection()?;
 
     let next_id: i64 = con.incr(namespace_key(REDIS_ID_KEY.to_string()), 1)?;
 

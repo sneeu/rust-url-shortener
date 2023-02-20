@@ -8,9 +8,8 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
+mod config;
 mod data;
-
-const HOST: &str = "http://0.0.0.0:3000";
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +19,7 @@ async fn main() {
         .route("/:key", get(get_url));
 
     // run it
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -41,9 +40,12 @@ struct CreateUrlResponse {
 async fn create_url(Json(input): Json<CreateUrl>) -> impl IntoResponse {
     let url = data::create_url(input.url);
 
+    let config = config::Config::read().unwrap();
+    let host = config.host_name;
+
     match url {
         Ok(url) => Ok(Json(CreateUrlResponse {
-            url: format!("{HOST}/{}", url.id),
+            url: format!("{host}/{}", url.id),
         })),
         _ => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
